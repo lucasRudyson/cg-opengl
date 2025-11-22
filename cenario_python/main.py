@@ -1,11 +1,15 @@
 import pygame
+import math
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from cubo import draw_cubo
 from iluminacao import iluminacoes
 from bloco import draw_block
-from stive import draw_steve
+from steve import draw_steve
+from io_dota import draw_io
+from plataforma import draw_plataforma
+
 def main():
     pygame.init()
     display = (800, 600)
@@ -16,14 +20,12 @@ def main():
 
     clock = pygame.time.Clock()
     running = True
-    rotacao_angulo = 0
-
     mao_angulo = 0
 
     # CÂMERA DE FRENTE:
-    camera_x, camera_y, camera_z = 0, 0, -8
-    camera_yaw = 180  # Olhando para o cubo
-    camera_pitch = 0  # Sem inclinação
+    camera_x, camera_y, camera_z = 1.5, 1, -10
+    camera_yaw = -180  
+    camera_pitch = 0 
 
     while running:
         # CONTROLE COM TECLADO:
@@ -31,11 +33,10 @@ def main():
         move_speed = 0.1
 
         # Calcular direção da câmera
-        import math
         yaw_rad = math.radians(camera_yaw)
-        light_x = 5 * math.sin(rotacao_angulo * 0.05)
-        light_z = 5 * math.cos(rotacao_angulo * 0.05)
-        glLightfv(GL_LIGHT0, GL_POSITION, [light_x, 5, light_z, 1])
+
+        # LUZ FIXA (não se move)
+        glLightfv(GL_LIGHT0, GL_POSITION, [5, 5, 5, 1])
 
         # W/S - Frente/Trás
         if keys[K_w]:
@@ -67,22 +68,25 @@ def main():
             camera_yaw += rotation_speed
         if keys[K_UP]:
             camera_pitch -= rotation_speed
-            camera_pitch = min(89, camera_pitch)  # Limitar
+            camera_pitch = min(89, camera_pitch)
         if keys[K_DOWN]:
             camera_pitch += rotation_speed
-            camera_pitch = max(-89, camera_pitch)  # Limitar
+            camera_pitch = max(-89, camera_pitch)
 
+        # J - Levantar braço
         if keys[K_j]:
-            mao_angulo = min(180, mao_angulo + 3)  # Levantar até 180°
+            mao_angulo = min(180, mao_angulo + 3)
         else:
             mao_angulo = max(0, mao_angulo - 3)
 
+        # Eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == KEYDOWN and event.key == K_ESCAPE:
                 running = False
 
+        # RENDERIZAÇÃO
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # ATUALIZAR CÂMERA:
@@ -91,16 +95,18 @@ def main():
         glRotatef(camera_yaw, 0, 1, 0)
         glTranslatef(-camera_x, -camera_y, -camera_z)
 
+        # DESENHAR OBJETOS
         glPushMatrix()
-        (rotacao_angulo, 0, 1, 0)  
-        draw_steve(mao_angulo) 
-     
+        draw_plataforma()
         glPopMatrix()
-    
 
+        glPushMatrix()
+        draw_steve(mao_angulo) 
+        glPopMatrix()
 
-
-        rotacao_angulo += 1
+        glPushMatrix()
+        draw_io(position_x=4, position_z=0)
+        glPopMatrix()
 
         pygame.display.flip()
         clock.tick(60)
@@ -112,24 +118,11 @@ def init_opengl():
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.5, 0.7, 1.0, 1.0)
 
-    # iluminacoes()
+    iluminacoes()
 
     glMatrixMode(GL_PROJECTION)
-    gluPerspective(45,
-                   800/600,
-                   0.1,
-                   50.0)
+    gluPerspective(45, 800/600, 0.1, 50.0)
     glMatrixMode(GL_MODELVIEW)
-
-
-
-def setup_camera():
-    glLoadIdentity()
-    gluLookAt(0,0,8,
-              0,0,0,
-              0,1,0)
-
-
 
 
 if __name__ == "__main__":

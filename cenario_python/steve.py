@@ -19,12 +19,14 @@ def draw_steve(arm_angle=0):
     draw_block(1, 1.5, 0.5, shirt_color)
     glPopMatrix()
 
-    # BRAÇO ESQUERDO
+    # BRAÇO ESQUERDO (estático)
     glPushMatrix()
     glTranslatef(-0.75, 2.25, 0)
     draw_block(0.5, 1.5, 0.5, skin_color)
     glPopMatrix()
 
+
+    # BRAÇO DIREITO (animado - levanta com J)
     glPushMatrix()
     glTranslatef(0.75, 3, 0)  # Pivot no ombro (mais alto)
     glRotatef(-arm_angle, 1, 0, 0)  # Rotacionar em torno do eixo X
@@ -43,3 +45,4 @@ def draw_steve(arm_angle=0):
     glTranslatef(0.25, 0.75, 0)
     draw_block(0.5, 1.5, 0.5, pants_color)
     glPopMatrix()
+
